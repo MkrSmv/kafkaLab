@@ -1,0 +1,19 @@
+FROM jupyter/base-notebook
+
+# Устанавливаем рабочую директорию внутри контейнера
+WORKDIR /home/jovyan/
+
+# Копируем ваш Jupyter Notebook и конфигурационный файл
+COPY ../src/EDA_ml.ipynb .
+COPY ../src/config.py .
+COPY data ./data
+
+# Копируем файл с зависимостями
+COPY ../requirements/req_ML.txt .
+
+# Устанавливаем зависимости
+RUN python -m pip install --upgrade pip
+RUN pip install --no-cache-dir -r req_ML.txt
+
+# Запускаем Jupyter Notebook (изменено для корректного выполнения .ipynb)
+CMD ["jupyter", "nbconvert", "--to", "notebook", "--execute", "EDA_ml.ipynb", "--output", "output.ipynb"]

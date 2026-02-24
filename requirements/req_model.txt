@@ -1,0 +1,4 @@
+confluent-kafka
+scikit-learn
+xgboost
+numpy

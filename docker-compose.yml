@@ -1,0 +1,87 @@
+services:
+  kafka-0:
+    image: confluentinc/cp-kafka:7.7.0
+    ports:
+      - "9097:9097"
+      - "9095:9095"
+    networks:
+      - local
+    environment:
+      # KRaft settings
+      - KAFKA_NODE_ID=0
+      - KAFKA_PROCESS_ROLES=controller,broker
+      - KAFKA_CONTROLLER_QUORUM_VOTERS=0@kafka-0:9093,1@kafka-1:9093
+      - KAFKA_KRAFT_MODE=true
+      - CLUSTER_ID=abcdefghijklmnopqrstuv
+      # Listeners
+      - KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_LISTENERS=PLAINTEXT://:9095,CONTROLLER://:9093,EXTERNAL://:9097
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka-0:9095,EXTERNAL://kafka-0:9097
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      # Дополнительные настройки для Confluent
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+      - KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=1
+      - KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS=0
+
+  kafka-1:
+    image: confluentinc/cp-kafka:7.7.0
+    ports:
+      - "9096:9096"
+      - "9098:9098"
+    networks:
+      - local
+    environment:
+      # KRaft settings
+      - KAFKA_NODE_ID=1
+      - KAFKA_PROCESS_ROLES=controller,broker
+      - KAFKA_CONTROLLER_QUORUM_VOTERS=0@kafka-0:9093,1@kafka-1:9093
+      - KAFKA_KRAFT_MODE=true
+      - CLUSTER_ID=abcdefghijklmnopqrstuv
+      # Listeners
+      - KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_LISTENERS=PLAINTEXT://:9096,CONTROLLER://:9093,EXTERNAL://:9098
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka-1:9096,EXTERNAL://kafka-1:9098
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      # Дополнительные настройки для Confluent
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+      - KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=1
+
+  streamlit-app:
+    build:
+      context: .
+      dockerfile: Dockerfiles/Dockerfile.streamlit
+    ports:
+      - "8501:8501"
+    networks:
+      - local
+    depends_on:
+      - kafka-0
+      - kafka-1
+
+  jupyter:
+    build:
+      context: .
+      dockerfile: Dockerfiles/Dockerfile.jupyter
+    ports:
+      - "8888:8888"
+    networks:
+      - local
+    depends_on:
+      - kafka-0
+      - kafka-1
+
+  model:
+    build:
+      context: .
+      dockerfile: Dockerfiles/Dockerfile.model
+    ports:
+      - "10000:10000"
+    networks:
+      - local
+    depends_on:
+      - kafka-0
+      - kafka-1
+
+networks:
+  local:
+    driver: bridge
