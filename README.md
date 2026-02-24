@@ -25,7 +25,7 @@ Once the containers are up and running, you can access the training metrics dash
 
 http://localhost:8501/
 
-and wait 1-2 minutes
+and wait 2-3 minutes
 
 # Features
 
